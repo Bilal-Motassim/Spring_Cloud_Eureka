@@ -11,6 +11,13 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import api from "@/lib/axios"
 
 interface Voiture {
@@ -19,6 +26,11 @@ interface Voiture {
   matricule: string
   model: string
   client_id: number
+}
+
+interface Client {
+  id: number
+  nom: string
 }
 
 interface VoitureDialogProps {
@@ -39,21 +51,32 @@ export function VoitureDialog({
   const [marque, setMarque] = useState("")
   const [matricule, setMatricule] = useState("")
   const [model, setModel] = useState("")
-  const [client_id, setClientId] = useState("")
+  const [selectedClientId, setSelectedClientId] = useState<string>("")
+  const [clients, setClients] = useState<Client[]>([])
 
   useEffect(() => {
     if (voiture) {
       setMarque(voiture.marque)
       setMatricule(voiture.matricule)
       setModel(voiture.model)
-      setClientId(voiture.client_id.toString())
+      setSelectedClientId(voiture.client_id.toString())
     } else {
       setMarque("")
       setMatricule("")
       setModel("")
-      setClientId(clientId ? clientId.toString() : "")
+      setSelectedClientId(clientId ? clientId.toString() : "")
     }
+    fetchClients()
   }, [voiture, clientId])
+
+  const fetchClients = async () => {
+    try {
+      const response = await api.get("/SERVICE-CLIENT/clients")
+      setClients(response.data._embedded.clients)
+    } catch (error) {
+      console.error("Error fetching clients:", error)
+    }
+  }
 
   const handleSave = async () => {
     const voitureData = {
@@ -61,21 +84,10 @@ export function VoitureDialog({
       marque,
       matricule,
       model,
-      client_id: parseInt(client_id),
+      client_id: parseInt(selectedClientId),
     }
 
-    try {
-      let response
-      if (voiture?.id) {
-        response = await api.put(`/SERVICE-VOITURE/voitures/${voiture.id}`, voitureData)
-      } else {
-        response = await api.post("/SERVICE-VOITURE/voitures", voitureData)
-      }
-      console.log(response.data)
-      onSave(response.data)
-    } catch (error) {
-      console.error("Error saving voiture:", error)
-    }
+    onSave(voitureData)
   }
 
   return (
@@ -120,16 +132,24 @@ export function VoitureDialog({
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="client_id" className="text-right">
-              Client ID
+              Client
             </Label>
-            <Input
-              id="client_id"
-              type="number"
-              value={client_id}
-              onChange={(e) => setClientId(e.target.value)}
-              className="col-span-3"
+            <Select
+              value={selectedClientId}
+              onValueChange={setSelectedClientId}
               disabled={clientId !== undefined}
-            />
+            >
+              <SelectTrigger className="col-span-3">
+                <SelectValue placeholder="Select a client" />
+              </SelectTrigger>
+              <SelectContent>
+                {clients.map((client) => (
+                  <SelectItem key={client.id} value={client.id.toString()}>
+                    {client.nom}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
         <DialogFooter>

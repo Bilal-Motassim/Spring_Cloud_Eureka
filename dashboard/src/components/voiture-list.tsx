@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import {
   Table,
@@ -30,34 +30,47 @@ export function VoitureList({ clientId }: VoitureListProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingVoiture, setEditingVoiture] = useState<Voiture | null>(null)
 
-  useEffect(() => {
-    fetchVoitures()
+  const fetchVoitures = useCallback(async () => {
+    const url = clientId ? `/SERVICE-VOITURE/voituresClient/${clientId}` : "/SERVICE-VOITURE/voitures"
+    try {
+      const response = await api.get(url)
+      if(response.data._embedded){
+        setVoitures(response.data._embedded.voitures)
+      }else{
+        setVoitures(response.data)
+      }
+      
+    } catch (error) {
+      console.error("Error fetching voitures:", error)
+    }
   }, [clientId])
 
-  const fetchVoitures = async () => {
-    const url = clientId ? `/SERVICE-VOITURE/voituresClient/${clientId}` : "/SERVICE-VOITURE/voitures"
-    const response = await api.get(url)
-    if(response.data._embedded){
-      setVoitures(response.data._embedded.voitures)
-    }else{
-      setVoitures(response.data)
-    }
-    
-  }
+  useEffect(() => {
+    fetchVoitures()
+  }, [fetchVoitures])
 
-  const handleAddEdit = (voiture: Voiture) => {
-    if (voiture.id) {
-      setVoitures(voitures.map((v) => (v.id === voiture.id ? voiture : v)))
-    } else {
-      setVoitures([...voitures, { ...voiture, id: Date.now() }])
+  const handleAddEdit = async (voiture: Voiture) => {
+    try {
+      if (voiture.id) {
+        await api.put(`/SERVICE-VOITURE/voitures/${voiture.id}`, voiture)
+      } else {
+        await api.post("/SERVICE-VOITURE/voitures", voiture)
+      }
+      setIsDialogOpen(false)
+      setEditingVoiture(null)
+      fetchVoitures() // Refresh the list after adding or editing
+    } catch (error) {
+      console.error("Error saving voiture:", error)
     }
-    setIsDialogOpen(false)
-    setEditingVoiture(null)
   }
 
   const handleDelete = async (id: number) => {
-    await api.delete(`/SERVICE-VOITURE/voitures/${id}`)
-    setVoitures(voitures.filter((v) => v.id !== id))
+    try {
+      await api.delete(`/SERVICE-VOITURE/voitures/${id}`)
+      fetchVoitures() // Refresh the list after deleting
+    } catch (error) {
+      console.error("Error deleting voiture:", error)
+    }
   }
 
   return (
