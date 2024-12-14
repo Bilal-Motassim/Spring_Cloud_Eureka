@@ -1,0 +1,16 @@
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: client-service
+          uri: lb://SERVICE-CLIENT
+          predicates:
+            - Path=/SERVICE-CLIENT/**
+          filters:
+            - RewritePath=/SERVICE-CLIENT/(?<segment>.*), /$\{segment}
+        - id: voiture-service
+          uri: lb://SERVICE-VOITURE
+          predicates:
+            - Path=/SERVICE-VOITURE/**
+          filters:
+            - RewritePath=/SERVICE-VOITURE/(?<segment>.*), /$\{segment}
