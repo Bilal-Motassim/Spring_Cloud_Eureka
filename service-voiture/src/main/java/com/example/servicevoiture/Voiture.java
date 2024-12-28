@@ -13,19 +13,16 @@ public class Voiture {
     private String matricule;
     private String model;
     private Long client_id;
-    @Transient
-    @ManyToOne
-    private Client client;
+
 
     public Voiture() {
     }
 
-    public Voiture(String marque, String matricule, String model, Long client_id, Client client) {
+    public Voiture(String marque, String matricule, String model, Long client_id) {
         this.marque = marque;
         this.matricule = matricule;
         this.model = model;
         this.client_id = client_id;
-        this.client = client;
     }
 
 
@@ -67,13 +64,5 @@ public class Voiture {
 
     public void setClient_id(Long client_id) {
         this.client_id = client_id;
-    }
-
-    public Client getClient() {
-        return client;
-    }
-
-    public void setClient(Client client) {
-        this.client = client;
     }
 }

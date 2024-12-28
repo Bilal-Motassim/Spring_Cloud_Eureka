@@ -7,9 +7,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 
-@Entity
+
 public class Client {
-    @Id
     private Long id;
     private String nom;
     private Float age;

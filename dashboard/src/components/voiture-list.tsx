@@ -15,10 +15,16 @@ import api from "@/lib/axios"
 
 interface Voiture {
   id: number
-  marque: string
+  brand: string
   matricule: string
   model: string
-  client_id: number
+  client: Client
+}
+
+interface Client {
+  id: number
+  nom: string
+  age: number
 }
 
 interface VoitureListProps {
@@ -31,11 +37,12 @@ export function VoitureList({ clientId }: VoitureListProps) {
   const [editingVoiture, setEditingVoiture] = useState<Voiture | null>(null)
 
   const fetchVoitures = useCallback(async () => {
-    const url = clientId ? `/SERVICE-VOITURE/voituresClient/${clientId}` : "/SERVICE-VOITURE/voitures"
+    const url = clientId ? `/SERVICE-VOITURE/api/voiture/voituresClient/${clientId}` : "/SERVICE-VOITURE/api/voiture"
     try {
       const response = await api.get(url)
-      if(response.data._embedded){
-        setVoitures(response.data._embedded.voitures)
+      if(response.data){
+        setVoitures(response.data)
+        console.log(response.data)
       }else{
         setVoitures(response.data)
       }
@@ -52,9 +59,9 @@ export function VoitureList({ clientId }: VoitureListProps) {
   const handleAddEdit = async (voiture: Voiture) => {
     try {
       if (voiture.id) {
-        await api.put(`/SERVICE-VOITURE/voitures/${voiture.id}`, voiture)
+        await api.put(`/SERVICE-VOITURE/api/voiture/${voiture.id}`, voiture)
       } else {
-        await api.post("/SERVICE-VOITURE/voitures", voiture)
+        await api.post("/SERVICE-VOITURE/api/voiture", voiture)
       }
       setIsDialogOpen(false)
       setEditingVoiture(null)
@@ -94,10 +101,10 @@ export function VoitureList({ clientId }: VoitureListProps) {
           {voitures.map((voiture) => (
             <TableRow key={voiture.id}>
               <TableCell>{voiture.id}</TableCell>
-              <TableCell>{voiture.marque}</TableCell>
+              <TableCell>{voiture.brand}</TableCell>
               <TableCell>{voiture.matricule}</TableCell>
               <TableCell>{voiture.model}</TableCell>
-              <TableCell>{voiture.client_id}</TableCell>
+              <TableCell>{voiture.client.nom}</TableCell>
               <TableCell>
                 <Button
                   variant="outline"
